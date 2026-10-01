@@ -7,14 +7,15 @@
   var ready = false, active = false;
   var mode = "orbit";                       // orbit | walk
   var orbit = { theta: -Math.PI / 4, phi: 1.0, dist: 56000, target: new THREE.Vector3(11000, 0, -16800) };
-  var walk = { yaw: 0, pitch: 0, keys: {}, eye: 1620, speed: 3000, feet: 0, locked: false };
+  var walk = { yaw: 0, pitch: 0, keys: {}, eye: 1620, speed: 3000, feet: 0, locked: false, stick: { x: 0, y: 0 } };
   var BODY_R = 170;                          // walker radius (mm)
   var STEP = 420;                            // highest step the walker climbs (mm)
   var colliders = [];                        // {x1,z1,x2,z2,y0,y1} world AABBs
   var surfaces = [];                         // {x1,y1,x2,y2,h} plan rects you can stand on
   var root = null;                           // scene group rebuilt on change
   var parts = {};                            // named sub-groups toggled without a rebuild
-  var view = { roof: false, upper: true };   // orbit-mode visibility
+  var view = { roof: true, upper: true };    // orbit-mode visibility: whole house by default
+  var isTouch = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || ("ontouchstart" in window);
   var brightness = 0.8;
 
   try {
@@ -583,7 +584,7 @@
   function init(el) {
     container = el;
     renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(isTouch ? 1.5 : 2, window.devicePixelRatio || 1));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
@@ -593,7 +594,7 @@
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xd3dae2);
-    scene.fog = new THREE.Fog(0xd3dae2, 70000, 180000);
+    scene.fog = new THREE.Fog(0xd3dae2, 110000, 280000);
 
     camera = new THREE.PerspectiveCamera(50, 1, 10, 300000);
 
@@ -608,7 +609,7 @@
     sun.target.position.copy(c);
     scene.add(sun.target);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(isTouch ? 1024 : 2048, isTouch ? 1024 : 2048);
     var d = 26000;
     sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
     sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
@@ -663,46 +664,83 @@
     camera.lookAt(o.target);
   }
 
-  /* ================= INPUT: ORBIT ================= */
+  /* ================= INPUT: ORBIT + TOUCH ================= */
   var dragBtn = -1, lastX = 0, lastY = 0;
+  var touches = {};                          // pointerId -> {x, y} for touch/pen pointers
+  var pinch = null;                          // {dist, mx, my} while two fingers are down
+
+  function touchList() { return Object.keys(touches).map(function (k) { return touches[k]; }); }
+  function pinchState() {
+    var t = touchList();
+    return { dist: Math.hypot(t[0].x - t[1].x, t[0].y - t[1].y) || 1, mx: (t[0].x + t[1].x) / 2, my: (t[0].y + t[1].y) / 2 };
+  }
+
+  function panBy(dx, dy) {
+    var panScale = orbit.dist * 0.0011;
+    var right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+    var up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+    orbit.target.addScaledVector(right, -dx * panScale);
+    orbit.target.addScaledVector(up, dy * panScale);
+  }
 
   function bindInput() {
     var el = renderer.domElement;
     el.addEventListener("pointerdown", function (e) {
-      if (mode !== "orbit") return;
-      dragBtn = e.button;
-      lastX = e.clientX; lastY = e.clientY;
       el.setPointerCapture(e.pointerId);
+      if (e.pointerType !== "mouse") {
+        touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+        if (touchList().length === 2) pinch = pinchState();
+      }
+      dragBtn = e.pointerType === "mouse" ? e.button : 0;
+      lastX = e.clientX; lastY = e.clientY;
     });
     el.addEventListener("pointermove", function (e) {
-      if (mode !== "orbit" || dragBtn < 0) return;
+      if (e.pointerType !== "mouse" && touches[e.pointerId]) {
+        touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+      }
+      if (dragBtn < 0) return;
       var dx = e.clientX - lastX, dy = e.clientY - lastY;
       lastX = e.clientX; lastY = e.clientY;
-      if (dragBtn === 0 && !e.shiftKey) {
+      if (mode === "walk") {
+        /* touch look: drag anywhere outside the joystick (mouse uses pointer lock) */
+        if (e.pointerType === "mouse" && walk.locked) return;
+        walk.yaw += dx * 0.0042;
+        walk.pitch = PET.clamp(walk.pitch + dy * 0.0034, -1.35, 1.35);
+        return;
+      }
+      if (pinch && touchList().length >= 2) {
+        var p = pinchState();
+        orbit.dist = PET.clamp(orbit.dist * pinch.dist / p.dist, 3000, 300000);
+        panBy(p.mx - pinch.mx, p.my - pinch.my);
+        pinch = p;
+      } else if (dragBtn === 0 && !e.shiftKey) {
         orbit.theta -= dx * 0.0055;
         orbit.phi = PET.clamp(orbit.phi - dy * 0.0045, 0.08, Math.PI / 2 - 0.03);
       } else {
-        /* pan target in view plane */
-        var panScale = orbit.dist * 0.0011;
-        var right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
-        var up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
-        orbit.target.addScaledVector(right, -dx * panScale);
-        orbit.target.addScaledVector(up, dy * panScale);
+        panBy(dx, dy);
       }
       cameraFromOrbit();
       renderFrame();
     });
-    el.addEventListener("pointerup", function () {
-      dragBtn = -1;
-    });
+    function release(e) {
+      delete touches[e.pointerId];
+      var left = touchList();
+      if (left.length < 2) pinch = null;
+      if (left.length === 1) { lastX = left[0].x; lastY = left[0].y; }   // keep rotating with the remaining finger
+      else dragBtn = -1;
+    }
+    el.addEventListener("pointerup", release);
+    el.addEventListener("pointercancel", release);
     el.addEventListener("wheel", function (e) {
       if (mode !== "orbit") return;
       e.preventDefault();
-      orbit.dist = PET.clamp(orbit.dist * (e.deltaY > 0 ? 1.12 : 1 / 1.12), 3000, 220000);
+      orbit.dist = PET.clamp(orbit.dist * (e.deltaY > 0 ? 1.12 : 1 / 1.12), 3000, 300000);
       cameraFromOrbit();
       renderFrame();
     }, { passive: false });
+    bindJoystick();
     el.addEventListener("dblclick", function () {
+      if (isTouch) return;                 // a double tap is too easy to hit while looking around
       if (mode === "orbit") startWalk();
       else stopWalk();
     });
@@ -726,6 +764,37 @@
       if (mode !== "walk") return;
       walk.keys[e.code] = false;
     });
+  }
+
+  /* ================= TOUCH JOYSTICK ================= */
+  function bindJoystick() {
+    var joy = document.getElementById("joy"), knob = document.getElementById("joy-knob");
+    if (!joy) return;
+    var id = null, R0 = 46;
+    function set(e) {
+      var r = joy.getBoundingClientRect();
+      var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      var d = Math.hypot(dx, dy), k = d > R0 ? R0 / d : 1;
+      dx *= k; dy *= k;
+      knob.style.transform = "translate(" + dx + "px," + dy + "px)";
+      walk.stick.x = dx / R0; walk.stick.y = dy / R0;
+    }
+    function end(e) {
+      if (e.pointerId !== id) return;
+      id = null; walk.stick.x = 0; walk.stick.y = 0;
+      knob.style.transform = "";
+    }
+    joy.addEventListener("pointerdown", function (e) {
+      id = e.pointerId; joy.setPointerCapture(id); set(e); e.preventDefault();
+    });
+    joy.addEventListener("pointermove", function (e) { if (e.pointerId === id) set(e); });
+    joy.addEventListener("pointerup", end);
+    joy.addEventListener("pointercancel", end);
+  }
+
+  function showTouchWalk(on) {
+    var tw = document.getElementById("touch-walk");
+    if (tw) tw.classList.toggle("hidden", !(on && isTouch));
   }
 
   /* ================= WALK MODE ================= */
@@ -755,13 +824,20 @@
     var c = planCentre();
     walk.yaw = Math.atan2(-(c.x - s.x), -(c.z + s.y));
     walk.pitch = -0.06;
-    try { renderer.domElement.requestPointerLock(); } catch (e) { /* headless */ }
+    if (!isTouch) {
+      try { renderer.domElement.requestPointerLock(); } catch (e) { /* headless */ }
+    } else {
+      PET.toast && PET.toast("Left thumb: walk · drag anywhere: look", false);
+    }
+    showTouchWalk(true);
     syncModeButtons();
     renderFrame();
   }
 
   function stopWalk() {
     mode = "orbit";
+    walk.stick.x = 0; walk.stick.y = 0;
+    showTouchWalk(false);
     if (document.pointerLockElement) document.exitPointerLock();
     orbit.target.copy(camera.position);
     orbit.target.y = 0;
@@ -809,6 +885,8 @@
     if (k.KeyS || k.ArrowDown) fwd -= 1;
     if (k.KeyD || k.ArrowRight) strafe += 1;
     if (k.KeyA || k.ArrowLeft) strafe -= 1;
+    /* touch joystick: push further to walk faster */
+    if (walk.stick.x || walk.stick.y) { fwd -= walk.stick.y; strafe += walk.stick.x; }
     var speed = walk.speed * (k.ShiftLeft || k.ShiftRight ? 2 : 1) * dt;
     var sin = Math.sin(walk.yaw), cos = Math.cos(walk.yaw);
     var dx = (-sin * fwd + cos * strafe) * speed;
@@ -826,7 +904,7 @@
     var target = floorAt(p.x, -p.z, walk.feet);
     walk.feet += (target - walk.feet) * Math.min(1, dt * 14);
     if (Math.abs(target - walk.feet) < 2) walk.feet = target;
-    var moving = fwd !== 0 || strafe !== 0;
+    var moving = Math.abs(fwd) + Math.abs(strafe) > 0.05;
     p.y = walk.feet + walk.eye + (moving ? Math.sin(performance.now() / 95) * 12 : 0);
     camera.rotation.set(walk.pitch, walk.yaw, 0, "YXZ");
   }
@@ -894,7 +972,7 @@
     if (mode === "walk") stopWalk();
     orbit.theta = 0;
     orbit.phi = 0.1;
-    orbit.dist = 58000;
+    orbit.dist = fitDist(58000);
     orbit.target.copy(planCentre());
     cameraFromOrbit();
     renderFrame();
@@ -904,11 +982,17 @@
     if (mode === "walk") stopWalk();
     orbit.theta = -Math.PI / 4;
     orbit.phi = 1.0;
-    orbit.dist = 56000;
+    orbit.dist = fitDist(56000);
     orbit.target.copy(planCentre());
     cameraFromOrbit();
     renderFrame();
   };
+
+  /* pull the camera back on tall, narrow screens so the whole house fits */
+  function fitDist(d) {
+    var a = camera ? camera.aspect : 1.6;
+    return d * Math.max(1, 0.95 / a);
+  }
 
   api.orbitMode = function () {
     if (mode === "walk") stopWalk();
@@ -932,6 +1016,10 @@
     applyVisibility(); renderFrame();
   };
   api.getView = function () { return { roof: view.roof, upper: view.upper }; };
+  api.getCam = function () {
+    return { theta: orbit.theta, dist: orbit.dist, x: camera.position.x, z: camera.position.z,
+             yaw: walk.yaw, stick: [walk.stick.x, walk.stick.y], mode: mode };
+  };
   api.setOrbit = function (theta, phi, dist, tx, ty) {
     if (mode === "walk") stopWalk();
     orbit.theta = theta; orbit.phi = phi; orbit.dist = dist;

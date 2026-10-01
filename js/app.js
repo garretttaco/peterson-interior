@@ -68,6 +68,7 @@
         '<span>' + r.name + '</span>' +
         '<span class="area">' + area + '</span>';
       li.addEventListener("click", function () {
+        closeMenus();
         if (currentView !== "2d") showView("2d");
         PET.store.selection = { kind: "room", id: r.id };
         PET.view2d.zoomToRoom(r);
@@ -97,6 +98,7 @@
       b.title = c.name + " — " + c.w + "×" + c.h + " mm";
       b.innerHTML = PET.glyph(c.type) + "<span>" + c.name + "</span>";
       b.addEventListener("click", function () {
+        closeMenus();
         if (currentView !== "2d") showView("2d");
         PET.view2d.addFurniture(c.type);
       });
@@ -151,14 +153,37 @@
     var btns = document.querySelectorAll("#toolbar .tool[data-tool]");
     for (var i = 0; i < btns.length; i++) {
       (function (b) {
-        b.addEventListener("click", function () { setActiveTool(b.dataset.tool); });
+        b.addEventListener("click", function () {
+          setActiveTool(b.dataset.tool);
+          if (currentView !== "2d") showView("2d");     // editing tools work on the plan
+          closeMenus();
+        });
       })(btns[i]);
     }
+
+    /* phone: the tools row and the side panels open on demand */
+    var topbar = document.getElementById("topbar");
+    var menuBtn = document.getElementById("btn-menu");
+    menuBtn.addEventListener("click", function () {
+      var open = !topbar.classList.contains("menu-open");
+      topbar.classList.toggle("menu-open", open);
+      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      onLayoutChange();
+    });
+    document.getElementById("btn-panels").addEventListener("click", function () {
+      document.body.classList.add("panels-open");
+      document.getElementById("scrim").classList.remove("hidden");
+    });
+    document.getElementById("scrim").addEventListener("click", closeMenus);
+    document.getElementById("btn-drawer-close").addEventListener("click", closeMenus);
     document.getElementById("btn-undo").addEventListener("click", function () {
       if (!PET.store.undo()) PET.toast("Nothing to undo");
     });
     document.getElementById("btn-redo").addEventListener("click", function () {
       if (!PET.store.redo()) PET.toast("Nothing to redo");
+    });
+    ["btn-fit", "btn-reset", "btn-export", "btn-undo", "btn-redo"].forEach(function (id) {
+      document.getElementById(id).addEventListener("click", function () { setTimeout(closeMenus, 0); });
     });
     document.getElementById("btn-fit").addEventListener("click", function () {
       if (currentView === "2d") PET.view2d.fit(); else PET.view3d.isoView();
@@ -205,6 +230,24 @@
         b.addEventListener("click", function () { setLevel(b.dataset.level); });
       })(lv[i]);
     }
+  }
+
+  function closeMenus() {
+    document.body.classList.remove("panels-open");
+    document.getElementById("scrim").classList.add("hidden");
+    var topbar = document.getElementById("topbar");
+    if (topbar.classList.contains("menu-open")) {
+      topbar.classList.remove("menu-open");
+      document.getElementById("btn-menu").setAttribute("aria-expanded", "false");
+      onLayoutChange();
+    }
+  }
+
+  /* the viewport changes size when the tools row opens or closes */
+  function onLayoutChange() {
+    requestAnimationFrame(function () {
+      window.dispatchEvent(new Event("resize"));
+    });
   }
 
   function setLevel(id) {
@@ -269,7 +312,8 @@
     PET.store.levels.forEach(function (L) {
       spaces += L.def.rooms.filter(function (r) { return !r.part && !r.void; }).length;
     });
-    PET.toast("Peterson plan loaded — 2 floors, " + spaces + " spaces", false);
+    showView("3d");                       // open on the 3D house: both floors and the roof
+    PET.toast("Peterson house — 2 floors, " + spaces + " spaces", false);
   }
 
   if (document.readyState === "loading") {

@@ -40,6 +40,20 @@ edited in 2D. The upstairs plan shows the main floor faintly underneath.
 **Switching** — the 2D/3D buttons cross-fade between views; camera and design
 state are preserved, both views always show the same data.
 
+## On a phone
+
+The page opens on the 3D house with the upstairs and roof showing.
+
+- **Orbit:** drag with one finger to turn the house; pinch to zoom; move two
+  fingers together to pan.
+- **Walk:** tap **Walk**, then push the round joystick (bottom left) to walk
+  and drag anywhere else to look around. Walk up the stairs to reach the
+  bonus room, or switch to **Up** first to start there.
+- **2D plan:** drag to pan, pinch to zoom, tap a room to select it, drag
+  furniture to move it.
+- **⋯** opens the editing tools; the first tool opens the rooms, furniture,
+  and floor panels.
+
 ## Run it
 
 Open `index.html` in a browser. That's it.

@@ -11,6 +11,9 @@
   var mouseWorld = { x: 0, y: 0 };
   var snapGuides = [];         // lines to flash while snapping
   var spaceDown = false;
+  var touches = {};            // active touch pointers: id -> {sx, sy}
+  var pinch = null;            // two-finger zoom state
+  var coarse = false;          // last pointer was a finger: bigger hit targets
 
   var COL = {
     paper: "#f6f4ef",
@@ -829,7 +832,7 @@
 
   function handleAt(f, x, y) {
     var hw = f.w / 2, hh = f.h / 2;
-    var tol = 10 / view.scale;
+    var tol = (coarse ? 20 : 10) / view.scale;
     var cand = [   /* world coordinates: +y is north */
       { x: -hw, y: hh, mode: "nw" }, { x: hw, y: hh, mode: "ne" },
       { x: hw, y: -hh, mode: "se" }, { x: -hw, y: -hh, mode: "sw" },
@@ -857,6 +860,7 @@
     canvas.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("dblclick", onDblClick);
     canvas.addEventListener("contextmenu", function (e) {
@@ -871,7 +875,40 @@
     window.addEventListener("keyup", onKeyUp);
   }
 
+  function touchPts() { return Object.keys(touches).map(function (k) { return touches[k]; }); }
+
   function onDown(e) {
+    coarse = e.pointerType === "touch";
+    if (coarse) {
+      var tp = evtPos(e);
+      touches[e.pointerId] = tp;
+      var pts = touchPts();
+      if (pts.length === 2) {
+        /* second finger: drop whatever the first finger started and zoom/pan */
+        if (drag && (drag.mode === "move" || drag.mode === "rotate" || drag.mode === "resize") && drag.item) {
+          drag.item.x = drag.ox !== undefined ? drag.ox : drag.item.x;
+          drag.item.y = drag.oy !== undefined ? drag.oy : drag.item.y;
+        }
+        var d0 = Math.hypot(pts[0].sx - pts[1].sx, pts[0].sy - pts[1].sy) || 1;
+        pinch = { d: d0, mx: (pts[0].sx + pts[1].sx) / 2, my: (pts[0].sy + pts[1].sy) / 2 };
+        drag = { mode: "pinch" };
+        snapGuides = [];
+        return;
+      }
+      /* one finger on empty floor pans the plan; a tap (no movement) still selects */
+      var w0 = s2w(tp.sx, tp.sy);
+      var sel0 = PET.store.selection;
+      var onHandle = false;
+      if (sel0 && sel0.kind === "furniture") {
+        var sf0 = PET.store.furniture.find(function (f) { return f.id === sel0.id; });
+        onHandle = !!(sf0 && handleAt(sf0, w0.x, w0.y));
+      }
+      if (PET.store.tool === "select" && !onHandle && !hitFurniture(w0.x, w0.y)) {
+        drag = { mode: "pan", sx: tp.sx, sy: tp.sy, cx: view.cx, cy: view.cy, tap: true, wx: w0.x, wy: w0.y };
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
     if (e.button === 1 || spaceDown || (e.button === 0 && e.altKey)) {
       var p0 = evtPos(e);
       drag = { mode: "pan", sx: p0.sx, sy: p0.sy, cx: view.cx, cy: view.cy };
@@ -953,6 +990,12 @@
       api.render();
       return;
     }
+    selectRoomAt(w);
+  }
+
+  /* select the room under a world point (or clear the selection) */
+  function selectRoomAt(w) {
+    var store = PET.store;
     var r2 = PET.roomAt(store.plan, w.x, w.y);
     if (r2) {
       store.selection = { kind: "room", id: r2.id };
@@ -970,9 +1013,22 @@
     var p = evtPos(e);
     var w = s2w(p.sx, p.sy);
     mouseWorld = w;
+    if (touches[e.pointerId]) touches[e.pointerId] = p;
 
     if (drag) {
+      if (drag.mode === "pinch") {
+        var pts = touchPts();
+        if (pts.length < 2) return;
+        var d = Math.hypot(pts[0].sx - pts[1].sx, pts[0].sy - pts[1].sy) || 1;
+        var mx = (pts[0].sx + pts[1].sx) / 2, my = (pts[0].sy + pts[1].sy) / 2;
+        view.cx -= (mx - pinch.mx) / view.scale;
+        view.cy += (my - pinch.my) / view.scale;
+        api.zoomBy(d / pinch.d, mx, my);
+        pinch = { d: d, mx: mx, my: my };
+        return;
+      }
       if (drag.mode === "pan") {
+        if (Math.abs(p.sx - drag.sx) + Math.abs(p.sy - drag.sy) > 8) drag.tap = false;
         view.cx = drag.cx - (p.sx - drag.sx) / view.scale;
         view.cy = drag.cy + (p.sy - drag.sy) / view.scale;
         api.render();
@@ -1055,6 +1111,18 @@
   }
 
   function onUp(e) {
+    var wasTouch = !!touches[e.pointerId];
+    delete touches[e.pointerId];
+    if (drag && drag.mode === "pinch") {
+      if (touchPts().length === 0) { drag = null; pinch = null; }
+      return;
+    }
+    if (drag && drag.mode === "pan" && drag.tap && wasTouch) {
+      var tapAt = { x: drag.wx, y: drag.wy };
+      drag = null;
+      selectRoomAt(tapAt);
+      return;
+    }
     if (!drag) return;
     if (drag.mode === "move") {
       if (drag.moved) {

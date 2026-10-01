@@ -20,16 +20,24 @@ const CHROME = process.env.CHROME_PATH ||
   await page.setViewport({ width: 1600, height: 1000 });
 
   const errors = [];
+  const out0 = {};
   page.on("pageerror", (e) => errors.push("PAGEERROR: " + e.message));
   page.on("console", (m) => { if (m.type() === "error") errors.push("CONSOLE: " + m.text()); });
 
   await page.goto(FILE, { waitUntil: "load" });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "load" });
+  /* the app opens on the 3D view with the roof and upstairs showing */
+  await new Promise((r) => setTimeout(r, 1500));
+  out0.default3d = await page.evaluate(() => ({
+    view3d: !document.getElementById("view3d").classList.contains("hidden"),
+    roof: PET.view3d.getView().roof, upper: PET.view3d.getView().upper,
+  }));
+  await page.click("#btn-2d");
   await page.waitForFunction("window.PET && PET.store && PET.store.walls.length > 0");
   await new Promise((r) => setTimeout(r, 600));
 
-  const out = { errors, steps: {} };
+  const out = { errors, steps: out0 };
 
   /* helper: world -> screen coordinates inside the canvas */
   const w2s = async (x, y) => await page.evaluate((x, y) => {

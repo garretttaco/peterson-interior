@@ -80,6 +80,20 @@ poppler's `pdftocairo`). It prints every room's size next to its label.
   (default 0.8, stored in `localStorage` as `peterson-bright`).
 - `PET.view3d.debug` exposes `walkTo`, `step`, and `floorAt` for QA.
 
+## 5a. Phones and touch
+
+- Opens on 3D with roof and upstairs (`view` defaults in `js/view3d.js`,
+  `showView("3d")` at the end of `boot()` in `js/app.js`).
+- At 700 px and narrower, `.toolbar` becomes `display: contents`; the editing
+  tools live in `.tools-group`, shown by the ⋯ button (`#topbar.menu-open`).
+  Below 980 px the sidebar is a drawer (`body.panels-open`).
+- 3D touch: pointers are tracked in `touches`; two fingers pinch-zoom and pan.
+  In walk mode, the `#joy` joystick sets `walk.stick` and dragging the canvas
+  turns the view. Pointer lock is skipped on touch devices, and phones render
+  at 1.5× pixel ratio with 1024 px shadows.
+- 2D touch: one finger on empty floor pans (a tap still selects), two fingers
+  pinch; handles get a larger hit radius for fingers.
+
 ## 6. Verify
 
 ```bash
@@ -88,6 +102,7 @@ python3 tools/extract_plan.py      # regenerate data, print label checks
 node qa/geometry-check.js          # both levels, stair, registration
 npm install --no-save puppeteer-core
 node qa/interactive-qa.js          # original 17 checks + floor switch + walking
+node qa/mobile-qa.js               # emulated iPhone: orbit, pinch, joystick, look, 2D touch
 ```
 
 The interactive suite walks through every door and opening on both floors in
