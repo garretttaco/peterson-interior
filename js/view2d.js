@@ -417,6 +417,16 @@
         ctx.font = "600 9px Inter, sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("OVERHEAD DOOR", 0, op.o === "v" ? 14 : -6);
+      } else if (op.type === "pocket") {
+        jambs();
+        ctx.save();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = "#8d949c";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-w / 2, 0); ctx.lineTo(w / 2 + w * 0.9, 0);
+        ctx.stroke();
+        ctx.restore();
       } else {               /* cased opening */
         ctx.strokeStyle = COL.wallPartEdge;
         ctx.lineWidth = 1.4;
@@ -426,6 +436,18 @@
         ctx.stroke();
       }
       ctx.restore();
+      /* size tag from sheet A2.0 (e.g. 2656 SH) once zoomed in far enough */
+      if (op.tag && g.s > 0.07) {
+        ctx.save();
+        ctx.font = "600 " + PET.clamp(g.s * 110, 8, 11) + "px Inter, sans-serif";
+        ctx.fillStyle = op.type === "window" || op.type === "slider" ? "#3f7088" : COL.textDim;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        var off = (op.thick / 2 + 260) * g.s;
+        ctx.translate(p.x, p.y);
+        if (op.o === "v") ctx.rotate(-Math.PI / 2);
+        ctx.fillText(op.tag, 0, -off);
+        ctx.restore();
+      }
     });
   }
 

@@ -3,7 +3,7 @@
   "use strict";
 
   var LS_KEY = "peterson-interior-v1";
-  var LAYOUT_VERSION = 3;      // bump when the default plan/layout changes
+  var LAYOUT_VERSION = 4;      // bump when the default plan/layout changes
   var MAX_HISTORY = 80;
 
   var store = {

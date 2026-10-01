@@ -10,7 +10,7 @@
 window.PET_PLAN = {
  "source": "Peterson 20251216.pdf \u2014 A1.0 (plans), A4.1 (sections), A3.1 (elevations), S2.0 (roof)",
  "dims": {
-  "doorHeight": 2032,
+  "doorHeight": 2438,
   "headerHeight": 2438,
   "windowSill": 914,
   "windowTop": 2438,
@@ -1725,7 +1725,11 @@ window.PET_PLAN = {
      "a": 3809,
      "b": 4622,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2856 FX",
+     "height": 1676,
+     "style": "fx",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1733,7 +1737,11 @@ window.PET_PLAN = {
      "a": 6809,
      "b": 7621,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2856 SH",
+     "height": 1676,
+     "style": "sh",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1741,7 +1749,11 @@ window.PET_PLAN = {
      "a": 9957,
      "b": 10770,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2856 SH",
+     "height": 1676,
+     "style": "sh",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1749,7 +1761,11 @@ window.PET_PLAN = {
      "a": 12498,
      "b": 13259,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2656 SH",
+     "height": 1676,
+     "style": "sh",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1757,7 +1773,11 @@ window.PET_PLAN = {
      "a": 13362,
      "b": 14124,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2656 SH",
+     "height": 1676,
+     "style": "sh",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1765,7 +1785,9 @@ window.PET_PLAN = {
      "a": 14733,
      "b": 16256,
      "thick": 152,
-     "type": "door2"
+     "type": "door2",
+     "tag": "5080 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1773,7 +1795,11 @@ window.PET_PLAN = {
      "a": 16866,
      "b": 17630,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2656 SH",
+     "height": 1676,
+     "style": "sh",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1781,7 +1807,11 @@ window.PET_PLAN = {
      "a": 17730,
      "b": 18491,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2656 SH",
+     "height": 1676,
+     "style": "sh",
+     "sill": 762
     },
     {
      "o": "h",
@@ -1797,7 +1827,9 @@ window.PET_PLAN = {
      "a": 4546,
      "b": 5359,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1805,7 +1837,9 @@ window.PET_PLAN = {
      "a": 6809,
      "b": 7621,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1813,7 +1847,9 @@ window.PET_PLAN = {
      "a": 10109,
      "b": 10821,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2480 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1829,7 +1865,9 @@ window.PET_PLAN = {
      "a": 16841,
      "b": 17654,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1837,7 +1875,11 @@ window.PET_PLAN = {
      "a": 20626,
      "b": 21236,
      "thick": 100,
-     "type": "window"
+     "type": "window",
+     "tag": "2030 FX",
+     "height": 914,
+     "style": "fx",
+     "sill": 1524
     },
     {
      "o": "h",
@@ -1845,7 +1887,9 @@ window.PET_PLAN = {
      "a": 6833,
      "b": 7543,
      "thick": 100,
-     "type": "closet"
+     "type": "door",
+     "tag": "2480 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1861,7 +1905,9 @@ window.PET_PLAN = {
      "a": 16714,
      "b": 17426,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2480 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1869,7 +1915,9 @@ window.PET_PLAN = {
      "a": 18391,
      "b": 19204,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1893,7 +1941,9 @@ window.PET_PLAN = {
      "a": 8992,
      "b": 9857,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1901,7 +1951,11 @@ window.PET_PLAN = {
      "a": 13184,
      "b": 13793,
      "thick": 103,
-     "type": "window"
+     "type": "window",
+     "tag": "2040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "h",
@@ -1909,7 +1963,11 @@ window.PET_PLAN = {
      "a": 13845,
      "b": 14454,
      "thick": 154,
-     "type": "window"
+     "type": "window",
+     "tag": "2040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "h",
@@ -1917,7 +1975,11 @@ window.PET_PLAN = {
      "a": 15140,
      "b": 16359,
      "thick": 154,
-     "type": "window"
+     "type": "window",
+     "tag": "4050 FX",
+     "height": 1524,
+     "style": "fx",
+     "sill": 914
     },
     {
      "o": "h",
@@ -1925,7 +1987,9 @@ window.PET_PLAN = {
      "a": 1726,
      "b": 2590,
      "thick": 152,
-     "type": "door"
+     "type": "door",
+     "tag": "21070 DR",
+     "height": 2134
     },
     {
      "o": "h",
@@ -1933,7 +1997,9 @@ window.PET_PLAN = {
      "a": 9323,
      "b": 10187,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1941,7 +2007,9 @@ window.PET_PLAN = {
      "a": 6809,
      "b": 7621,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1949,7 +2017,9 @@ window.PET_PLAN = {
      "a": 4191,
      "b": 5259,
      "thick": 100,
-     "type": "closet"
+     "type": "closet",
+     "tag": "3680 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1957,7 +2027,9 @@ window.PET_PLAN = {
      "a": 2997,
      "b": 3761,
      "thick": 100,
-     "type": "closet"
+     "type": "door",
+     "tag": "2680 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1973,7 +2045,9 @@ window.PET_PLAN = {
      "a": 7467,
      "b": 8331,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1981,7 +2055,9 @@ window.PET_PLAN = {
      "a": 6299,
      "b": 7163,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "h",
@@ -1989,7 +2065,11 @@ window.PET_PLAN = {
      "a": 4243,
      "b": 4901,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2230 FX",
+     "height": 914,
+     "style": "fx",
+     "sill": 1524
     },
     {
      "o": "h",
@@ -1997,7 +2077,11 @@ window.PET_PLAN = {
      "a": 5004,
      "b": 5665,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2230 FX",
+     "height": 914,
+     "style": "fx",
+     "sill": 1524
     },
     {
      "o": "h",
@@ -2005,7 +2089,11 @@ window.PET_PLAN = {
      "a": 7749,
      "b": 8407,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2240 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "h",
@@ -2013,7 +2101,11 @@ window.PET_PLAN = {
      "a": 10542,
      "b": 11203,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2240 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2021,7 +2113,9 @@ window.PET_PLAN = {
      "a": 9144,
      "b": 14630,
      "thick": 152,
-     "type": "garage"
+     "type": "garage",
+     "tag": "18080 OHD",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2029,7 +2123,11 @@ window.PET_PLAN = {
      "a": 24750,
      "b": 26579,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "6020 FX",
+     "height": 610,
+     "style": "fx",
+     "sill": 1828
     },
     {
      "o": "v",
@@ -2037,7 +2135,11 @@ window.PET_PLAN = {
      "a": 534,
      "b": 2972,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "8010 FX",
+     "height": 305,
+     "style": "fx",
+     "sill": 2133
     },
     {
      "o": "v",
@@ -2045,7 +2147,11 @@ window.PET_PLAN = {
      "a": 3658,
      "b": 4267,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2020 FX",
+     "height": 610,
+     "style": "fx",
+     "sill": 1828
     },
     {
      "o": "v",
@@ -2053,7 +2159,11 @@ window.PET_PLAN = {
      "a": 4901,
      "b": 7340,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "8010 FX",
+     "height": 305,
+     "style": "fx",
+     "sill": 2133
     },
     {
      "o": "v",
@@ -2061,7 +2171,11 @@ window.PET_PLAN = {
      "a": 18033,
      "b": 18846,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2840 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2069,7 +2183,11 @@ window.PET_PLAN = {
      "a": 18946,
      "b": 19759,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2840 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2077,7 +2195,9 @@ window.PET_PLAN = {
      "a": 21639,
      "b": 22555,
      "thick": 152,
-     "type": "door"
+     "type": "door",
+     "tag": "3080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2085,7 +2205,11 @@ window.PET_PLAN = {
      "a": 29144,
      "b": 30363,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "4030 FX",
+     "height": 914,
+     "style": "fx",
+     "sill": 1524
     },
     {
      "o": "v",
@@ -2093,7 +2217,11 @@ window.PET_PLAN = {
      "a": 31734,
      "b": 32954,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "4020 FX",
+     "height": 610,
+     "style": "fx",
+     "sill": 1828
     },
     {
      "o": "v",
@@ -2117,7 +2245,9 @@ window.PET_PLAN = {
      "a": 31445,
      "b": 32306,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2125,7 +2255,9 @@ window.PET_PLAN = {
      "a": 3557,
      "b": 4370,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2133,7 +2265,9 @@ window.PET_PLAN = {
      "a": 3519,
      "b": 4229,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2480 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2141,7 +2275,9 @@ window.PET_PLAN = {
      "a": 2211,
      "b": 3124,
      "thick": 100,
-     "type": "door"
+     "type": "pocket",
+     "tag": "3080 PKT",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2149,7 +2285,9 @@ window.PET_PLAN = {
      "a": 5714,
      "b": 6527,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2880 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2157,7 +2295,9 @@ window.PET_PLAN = {
      "a": 20244,
      "b": 21106,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2165,7 +2305,9 @@ window.PET_PLAN = {
      "a": 30477,
      "b": 31342,
      "thick": 103,
-     "type": "door"
+     "type": "pocket",
+     "tag": "21080 PKT",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2181,7 +2323,9 @@ window.PET_PLAN = {
      "a": 20244,
      "b": 21106,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "21080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2189,7 +2333,9 @@ window.PET_PLAN = {
      "a": 17551,
      "b": 18464,
      "thick": 103,
-     "type": "closet"
+     "type": "door",
+     "tag": "3080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2197,7 +2343,9 @@ window.PET_PLAN = {
      "a": 18770,
      "b": 19683,
      "thick": 103,
-     "type": "closet"
+     "type": "door",
+     "tag": "3080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2221,7 +2369,11 @@ window.PET_PLAN = {
      "a": 14541,
      "b": 15760,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "4030 FX",
+     "height": 914,
+     "style": "fx",
+     "sill": 1524
     },
     {
      "o": "v",
@@ -2229,7 +2381,11 @@ window.PET_PLAN = {
      "a": 18402,
      "b": 19215,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2840 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2237,7 +2393,11 @@ window.PET_PLAN = {
      "a": 19315,
      "b": 20128,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2840 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2245,7 +2405,11 @@ window.PET_PLAN = {
      "a": 21615,
      "b": 23138,
      "thick": 152,
-     "type": "slider"
+     "type": "window",
+     "tag": "5070 FX",
+     "height": 2134,
+     "style": "fx",
+     "sill": 304
     },
     {
      "o": "v",
@@ -2253,7 +2417,9 @@ window.PET_PLAN = {
      "a": 26695,
      "b": 28218,
      "thick": 152,
-     "type": "slider"
+     "type": "slider",
+     "tag": "5080 SGD",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2261,7 +2427,11 @@ window.PET_PLAN = {
      "a": 30033,
      "b": 30949,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "3040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2269,7 +2439,11 @@ window.PET_PLAN = {
      "a": 31049,
      "b": 31965,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "3040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2285,7 +2459,9 @@ window.PET_PLAN = {
      "a": 11658,
      "b": 12571,
      "thick": 152,
-     "type": "door"
+     "type": "door",
+     "tag": "3080 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2293,7 +2469,9 @@ window.PET_PLAN = {
      "a": 7061,
      "b": 7773,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2480 DR",
+     "height": 2438
     },
     {
      "o": "v",
@@ -2301,7 +2479,11 @@ window.PET_PLAN = {
      "a": 2997,
      "b": 3606,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2309,7 +2491,11 @@ window.PET_PLAN = {
      "a": 5156,
      "b": 5765,
      "thick": 152,
-     "type": "window"
+     "type": "window",
+     "tag": "2040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     },
     {
      "o": "v",
@@ -2317,7 +2503,11 @@ window.PET_PLAN = {
      "a": 9296,
      "b": 10211,
      "thick": 154,
-     "type": "window"
+     "type": "window",
+     "tag": "3040 SH",
+     "height": 1219,
+     "style": "sh",
+     "sill": 1219
     }
    ],
    "stair": {
@@ -2468,7 +2658,7 @@ window.PET_PLAN = {
    "elev": 3353,
    "height": 2134,
    "windowSill": 762,
-   "windowTop": 1880,
+   "windowTop": 2083,
    "doorHeight": 2032,
    "rooms": [
     {
@@ -2743,7 +2933,11 @@ window.PET_PLAN = {
      "a": 15037,
      "b": 15950,
      "thick": 100,
-     "type": "window"
+     "type": "window",
+     "tag": "3050 FX",
+     "height": 1524,
+     "style": "fx",
+     "sill": 559
     },
     {
      "o": "h",
@@ -2751,7 +2945,9 @@ window.PET_PLAN = {
      "a": 16765,
      "b": 17475,
      "thick": 100,
-     "type": "door"
+     "type": "door",
+     "tag": "2468 DR",
+     "height": 2032
     },
     {
      "o": "h",
@@ -2759,7 +2955,9 @@ window.PET_PLAN = {
      "a": 18516,
      "b": 19735,
      "thick": 100,
-     "type": "closet"
+     "type": "closet",
+     "tag": "4068 DR",
+     "height": 2032
     },
     {
      "o": "v",
@@ -2775,7 +2973,9 @@ window.PET_PLAN = {
      "a": 3265,
      "b": 4078,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2868 DR",
+     "height": 2032
     },
     {
      "o": "v",
@@ -2783,7 +2983,9 @@ window.PET_PLAN = {
      "a": 7315,
      "b": 8128,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2868 DR",
+     "height": 2032
     },
     {
      "o": "v",
@@ -2791,7 +2993,9 @@ window.PET_PLAN = {
      "a": 9041,
      "b": 9754,
      "thick": 103,
-     "type": "door"
+     "type": "door",
+     "tag": "2468 DR",
+     "height": 2032
     },
     {
      "o": "v",
@@ -2799,7 +3003,11 @@ window.PET_PLAN = {
      "a": 6706,
      "b": 7619,
      "thick": 100,
-     "type": "window"
+     "type": "window",
+     "tag": "3030 FX",
+     "height": 914,
+     "style": "fx",
+     "sill": 1169
     }
    ]
   }
@@ -2817,7 +3025,7 @@ window.PET_PLAN = {
    "ridgeAt": 7214,
    "ridgeZ": 7820,
    "ends": [
-    "hip",
+    "open",
     "gable"
    ],
    "note": "North wing 12:12, ridge 25'-7\""
@@ -2834,27 +3042,44 @@ window.PET_PLAN = {
    "ridgeAt": 25666,
    "ridgeZ": 6310,
    "ends": [
-    "hip",
+    "gable",
     "open"
    ],
-   "note": "Pantry bump 12:12"
+   "note": "Pantry gable 12:12, 20'-7\", faces west"
   },
   {
    "id": "garage",
    "kind": "gable",
    "x1": -458,
    "y1": 7315,
-   "x2": 8231,
+   "x2": 7597,
    "y2": 16511,
    "pitch": 1.0,
    "axis": "x",
    "ridgeAt": 11913,
    "ridgeZ": 7439,
    "ends": [
-    "hip",
-    "hip"
+    "gable",
+    "open"
    ],
-   "note": "Garage hip 12:12, 24'-5\""
+   "note": "Garage gable 12:12, 24'-5\", faces west"
+  },
+  {
+   "id": "ridge-link",
+   "kind": "gable",
+   "x1": 5064,
+   "y1": 7773,
+   "x2": 8778,
+   "y2": 11032,
+   "pitch": 1.0,
+   "axis": "y",
+   "ridgeAt": 7214,
+   "ridgeZ": 7820,
+   "ends": [
+    "open",
+    "open"
+   ],
+   "note": "Main ridge carried over the stair"
   },
   {
    "id": "southwest",
@@ -2862,33 +3087,42 @@ window.PET_PLAN = {
    "x1": 2235,
    "y1": -458,
    "x2": 11534,
-   "y2": 9949,
+   "y2": 7773,
    "pitch": 1.0,
    "axis": "y",
-   "ridgeAt": 6884,
-   "ridgeZ": 7491,
+   "ridgeAt": 7214,
+   "ridgeZ": 7820,
    "ends": [
     "gable",
-    "hip"
+    "open"
    ],
-   "note": "South-west suite 12:12"
+   "note": "South-west suite 12:12, same ridge as the north wing",
+   "gableWindows": [
+    {
+     "end": 0,
+     "tag": "2640 FX",
+     "w": 762,
+     "h": 1219,
+     "head": 5486
+    }
+   ]
   },
   {
    "id": "stairhall",
    "kind": "gable",
    "x1": 6147,
-   "y1": 7315,
+   "y1": 6427,
    "x2": 11024,
-   "y2": 10669,
+   "y2": 11574,
    "pitch": 0.75,
    "axis": "x",
    "ridgeAt": 8992,
-   "ridgeZ": 6514,
+   "ridgeZ": 7077,
    "ends": [
-    "gable",
+    "open",
     "open"
    ],
-   "note": "Stair enclosure 9:12"
+   "note": "Stair roof 9:12, ridge 23'-2\""
   },
   {
    "id": "bonus",
@@ -2938,9 +3172,9 @@ window.PET_PLAN = {
    "ridgeZ": 5080,
    "ends": [
     "open",
-    "hip"
+    "gable"
    ],
-   "note": "East strip 9:12, 16'-8\""
+   "note": "East gable 9:12, 16'-8\""
   },
   {
    "id": "porch-e",
@@ -2951,7 +3185,7 @@ window.PET_PLAN = {
    "y2": 33983,
    "pitch": 0.0833,
    "high": "w",
-   "zHigh": 3250
+   "zHigh": 3556
   },
   {
    "id": "porch-r1",
@@ -2962,7 +3196,7 @@ window.PET_PLAN = {
    "y2": 16232,
    "pitch": 0.0833,
    "high": "s",
-   "zHigh": 3250
+   "zHigh": 3556
   },
   {
    "id": "porch-r2",
@@ -2973,7 +3207,7 @@ window.PET_PLAN = {
    "y2": 16232,
    "pitch": 0.0833,
    "high": "s",
-   "zHigh": 3250
+   "zHigh": 3556
   },
   {
    "id": "patio-s",
@@ -2984,7 +3218,7 @@ window.PET_PLAN = {
    "y2": 2541,
    "pitch": 0.0833,
    "high": "n",
-   "zHigh": 3250
+   "zHigh": 3556
   },
   {
    "id": "patio-e",
@@ -2995,7 +3229,7 @@ window.PET_PLAN = {
    "y2": 6706,
    "pitch": 0.0833,
    "high": "w",
-   "zHigh": 3250
+   "zHigh": 3556
   }
  ],
  "skirts": [
@@ -3022,6 +3256,64 @@ window.PET_PLAN = {
    "y2": 2693,
    "z0": 3048,
    "z1": 5015
+  }
+ ],
+ "beams": [
+  {
+   "x1": 10921,
+   "y1": 685,
+   "x2": 21948,
+   "y2": 940,
+   "z0": 3047,
+   "z1": 3352
+  },
+  {
+   "x1": 21721,
+   "y1": 940,
+   "x2": 21973,
+   "y2": 6706,
+   "z0": 3047,
+   "z1": 3352
+  },
+  {
+   "x1": 21721,
+   "y1": 11582,
+   "x2": 21973,
+   "y2": 15774,
+   "z0": 3016,
+   "z1": 3321
+  },
+  {
+   "x1": 16662,
+   "y1": 15546,
+   "x2": 21948,
+   "y2": 15798,
+   "z0": 2850,
+   "z1": 3155
+  },
+  {
+   "x1": 11734,
+   "y1": 15546,
+   "x2": 16662,
+   "y2": 15798,
+   "z0": 2979,
+   "z1": 3284
+  },
+  {
+   "x1": 14557,
+   "y1": 15798,
+   "x2": 14809,
+   "y2": 33525,
+   "z0": 2945,
+   "z1": 3250
+  },
+  {
+   "x1": 11734,
+   "y1": 33298,
+   "x2": 14785,
+   "y2": 33550,
+   "z0": 3064,
+   "z1": 3369
   }
  ],
  "overhang": 458

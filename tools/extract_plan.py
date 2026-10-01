@@ -79,6 +79,51 @@ def extract_walls(pdf):
     return merge(sorted(rects))
 
 
+def extract_tags(pdf):
+    """Window/door size tags on A2.0 (page 2), e.g. '2656 SH' at (E, N) units.
+
+    Tags read WWHH in feet+inches: 2656 = 2'-6" wide x 5'-6" tall. Vertical
+    tags are rotated text, so number and suffix are paired by position."""
+    with tempfile.TemporaryDirectory() as tmp:
+        html = os.path.join(tmp, "a2.html")
+        subprocess.run(["pdftotext", "-f", "2", "-l", "2", "-bbox", pdf, html], check=True)
+        h = open(html).read()
+    words = [(float(a), float(b), float(c), float(d), t) for a, b, c, d, t in re.findall(
+        r'xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)<', h)]
+    nums = [w for w in words if re.fullmatch(r"\d{4,5}", w[4])]
+    kinds = [w for w in words if re.fullmatch(r"(SH|FX|DR|PKT|SGD|PIC)\.?", w[4])]
+    tags = []
+    for n in nums:
+        vert = (n[3] - n[1]) > (n[2] - n[0])
+        best = None
+        for k in kinds:
+            if vert:
+                same_col = abs((k[0] + k[2]) / 2 - (n[0] + n[2]) / 2) < 3
+                if same_col and (0 <= n[1] - k[3] < 6 or 0 <= k[1] - n[3] < 6):
+                    best = k
+            elif abs(k[1] - n[1]) < 2 and 0 <= k[0] - n[2] < 6:
+                best = k
+        if not best:
+            continue
+        x0, y0 = min(n[0], best[0]), min(n[1], best[1])
+        x1, y1 = max(n[2], best[2]), max(n[3], best[3])
+        tags.append((n[4] + " " + best[4].strip("."), ((x0 + x1) / 2 - 2592) / .12, (1728 - (y0 + y1) / 2) / .12))
+    return tags
+
+
+def tag_size(tag):
+    """'2656 SH' -> (width_mm, height_mm); '18080 OHD' -> 18'-0" x 8'-0"."""
+    d = tag.split()[0]
+    w, h = d[:-2], d[-2:]
+    def ftin(v):
+        if len(v) == 3 and int(v[1:]) <= 11:     # 210 = 2'-10"
+            return int(v[0]) * 12 + int(v[1:])
+        if len(v) == 3:                         # 180 = 18'-0"
+            return int(v[:2]) * 12 + int(v[2])
+        return int(v[0]) * 12 + int(v[1:])      # 26 = 2'-6"
+    return round(ftin(w) * 25.4), round(ftin(h) * 25.4)
+
+
 def merge(rs):
     """Union rectangles that share a band and touch end to end."""
     rs = [list(r) for r in rs]
@@ -232,6 +277,15 @@ MAIN_OPENINGS = [
     ("v", -10496, 4659, 4997, 57, "window"),
 ]
 
+# Tags that A2.0 leaves off, read from the elevations (A3.1): keyed by (orient, line, a)
+TAG_OVERRIDES = {
+    ("v", -14266, 9206): "5070 FX",     # living room east, south
+    ("v", -14266, 11081): "5080 SGD",   # living room east, north (sliding glass door)
+    ("v", -18541, 4603): "18080 OHD",   # garage door
+    ("h", 9074, -17463): "2680 DR",     # coat closet
+    ("h", 2194, -13131): "5080 DR",     # great-room French doors
+}
+
 BONUS_OPENINGS = [
     ("h", 2184, -4925, -4588, 37, "window"),
     ("h", 4396, -4287, -4025, 37, "door"),
@@ -247,6 +301,8 @@ BONUS_OPENINGS = [
 # 4. Heights (mm), from section A4.1 and elevations A3.1
 # --------------------------------------------------------------------------
 MAIN_CEIL = 3048            # 10'-0" CLG
+MAIN_HEAD = 2438            # 8'-0" HDR (A3.1, A4.1): every main-floor window and door head
+BONUS_HEAD = 2083           # 6'-10" upstairs window head (A3.1 front elevation)
 FLOOR_TO_FLOOR = 3353       # bonus finished floor at 11'-0" (section 2)
 BONUS_CEIL = 2134           # 7'-0" CLG
 RISERS = 18                 # 4-tread north run + landing + 12-tread south run
@@ -260,30 +316,39 @@ TREAD_U = 93.75             # 10" treads
 #    shed: high side n/s/e/w, zHigh mm.
 # --------------------------------------------------------------------------
 O = 169   # 1'-6" overhang in units
+SHED_TOP = 3556   # metal porch roofs top out at 11'-8" against the house (A3.1)
 ROOF = [
+    # One continuous 12:12 ridge at 25'-7" runs over both west wings (A3.1 left elevation).
     dict(id="north", kind="gable", rect=(-17575 - O, 5300, -14238 + O, 13602 + O), axis="y",
-         ridgeAt=-15906.5, ridgeZ=7820, pitch=1.0, ends=["hip", "gable"],
+         ridgeAt=-15906.5, ridgeZ=7820, pitch=1.0, ends=["open", "gable"],
          note="North wing 12:12, ridge 25'-7\""),
     dict(id="pantry", kind="gable", rect=(-17988 - O, 9590 - O, -16463, 11812 + O), axis="x",
-         ridgeAt=10701, ridgeZ=6310, pitch=1.0, ends=["hip", "open"], note="Pantry bump 12:12"),
-    dict(id="garage", kind="gable", rect=(-18569 - O, 4097 - O, -15700 + O, 7153 + O), axis="x",
-         ridgeAt=5625, ridgeZ=7439, pitch=1.0, ends=["hip", "hip"], note="Garage hip 12:12, 24'-5\""),
-    dict(id="southwest", kind="gable", rect=(-17575 - O, 1228 - O, -14481 + O, 4900), axis="y",
-         ridgeAt=-16028, ridgeZ=7491, pitch=1.0, ends=["gable", "hip"], note="South-west suite 12:12"),
-    dict(id="stairhall", kind="gable", rect=(-16300, 4097 - O, -14500, 4997 + O), axis="x",
-         ridgeAt=4547, ridgeZ=6514, pitch=0.75, ends=["gable", "open"], note="Stair enclosure 9:12"),
+         ridgeAt=10701, ridgeZ=6310, pitch=1.0, ends=["gable", "open"], note="Pantry gable 12:12, 20'-7\", faces west"),
+    dict(id="garage", kind="gable", rect=(-18569 - O, 4097 - O, -15765, 7153 + O), axis="x",
+         ridgeAt=5625, ridgeZ=7439, pitch=1.0, ends=["gable", "open"], note="Garage gable 12:12, 24'-5\", faces west"),
+    # Over the stair the 12:12 roof stops ~20'-5" up, east of the ridge (A4.1 section 2),
+    # and the 9:12 stair roof covers the rest, so the stair keeps its headroom.
+    dict(id="ridge-link", kind="gable", rect=(-16700, 4097, -15329, 5300), axis="y",
+         ridgeAt=-15906.5, ridgeZ=7820, pitch=1.0, ends=["open", "open"],
+         note="Main ridge carried over the stair"),
+    dict(id="southwest", kind="gable", rect=(-17575 - O, 1228 - O, -14481 + O, 4097), axis="y",
+         ridgeAt=-15906.5, ridgeZ=7820, pitch=1.0, ends=["gable", "open"],
+         gableWindows=[dict(end=0, tag="2640 FX", head=5486)],
+         note="South-west suite 12:12, same ridge as the north wing"),
+    dict(id="stairhall", kind="gable", rect=(-16300, 3600, -14500, 5500), axis="x",
+         ridgeAt=4547, ridgeZ=7077, pitch=0.75, ends=["open", "open"], note="Stair roof 9:12, ridge 23'-2\""),
     dict(id="bonus", kind="gable", rect=(-14500 - O, 1875, -11144 + O, 6075 + O), axis="x",
          ridgeAt=3955, ridgeZ=7798, pitch=7 / 12, ends=["gable", "gable"], gableBase=5487,
          note="Bonus room 7:12, ridge 25'-7\""),
     dict(id="cross", kind="gable", rect=(-13488 - O, 2166 - O, -12175 + O, 3955), axis="y",
          ridgeAt=-12832, ridgeZ=7081, pitch=10 / 12, ends=["gable", "open"], note="Great-room cross gable 10:12"),
     dict(id="east", kind="gable", rect=(-11144, 3703 - O, -10468 + O, 5503 + O), axis="x",
-         ridgeAt=4603, ridgeZ=5080, pitch=0.75, ends=["open", "hip"], note="East strip 9:12, 16'-8\""),
-    dict(id="porch-e", kind="shed", rect=(-14238, 7050, -13112 + O, 13602 + O), high="w", zHigh=3250, pitch=1 / 12),
-    dict(id="porch-r1", kind="shed", rect=(-12419, 5503, -10468 + O, 7050 + O), high="s", zHigh=3250, pitch=1 / 12),
-    dict(id="porch-r2", kind="shed", rect=(-14238, 6075, -12419, 7050 + O), high="s", zHigh=3250, pitch=1 / 12),
-    dict(id="patio-s", kind="shed", rect=(-14481 - O, 1491 - O, -10468 + O, 2166), high="n", zHigh=3250, pitch=1 / 12),
-    dict(id="patio-e", kind="shed", rect=(-11144, 2166, -10468 + O, 3703), high="w", zHigh=3250, pitch=1 / 12),
+         ridgeAt=4603, ridgeZ=5080, pitch=0.75, ends=["open", "gable"], note="East gable 9:12, 16'-8\""),
+    dict(id="porch-e", kind="shed", rect=(-14238, 7050, -13112 + O, 13602 + O), high="w", zHigh=SHED_TOP, pitch=1 / 12),
+    dict(id="porch-r1", kind="shed", rect=(-12419, 5503, -10468 + O, 7050 + O), high="s", zHigh=SHED_TOP, pitch=1 / 12),
+    dict(id="porch-r2", kind="shed", rect=(-14238, 6075, -12419, 7050 + O), high="s", zHigh=SHED_TOP, pitch=1 / 12),
+    dict(id="patio-s", kind="shed", rect=(-14481 - O, 1491 - O, -10468 + O, 2166), high="n", zHigh=SHED_TOP, pitch=1 / 12),
+    dict(id="patio-e", kind="shed", rect=(-11144, 2166, -10468 + O, 3703), high="w", zHigh=SHED_TOP, pitch=1 / 12),
 ]
 # Infill walls between a lower plate and a roof above it: (x1,y1,x2,y2,z0,roofId)
 SKIRTS = [
@@ -291,6 +356,26 @@ SKIRTS = [
     (-14481, 2166, -13488, 2222, MAIN_CEIL, "bonus"),     # great-room south wall, west of the cross gable
     (-12175, 2166, -11144, 2222, MAIN_CEIL, "bonus"),     # great-room south wall, east of the cross gable
 ]
+
+
+# Porch beams under the shed roofs (A3.1): 10x12 on the front patio, 8x12 elsewhere.
+# (x1, y1, x2, y2 units, depth mm, shed id)
+BEAMS = [
+    (-14538, 1481, -10468, 1575, 305, "patio-s"),
+    (-10552, 1575, -10459, 3703, 305, "patio-e"),
+    (-10552, 5503, -10459, 7050, 305, "porch-r1"),
+    (-12419, 6966, -10468, 7059, 305, "porch-r1"),
+    (-14238, 6966, -12419, 7059, 305, "porch-r2"),
+    (-13196, 7059, -13103, 13602, 305, "porch-e"),
+    (-14238, 13518, -13112, 13611, 305, "porch-e"),
+]
+
+
+def shed_z(r, e, n):
+    """Height (mm) of a shed roof plane at unit point (e, n)."""
+    x1, y1, x2, y2 = r["rect"]
+    d = {"n": y2 - n, "s": n - y1, "e": x2 - e, "w": e - x1}[r["high"]] * U
+    return r["zHigh"] - d * r["pitch"]
 
 
 def roof_z(r, e, n):
@@ -403,10 +488,44 @@ def build(pdf):
         if orient == "h":
             xa, yat = mm(a, at, bonus)
             xb, _ = mm(b, at, bonus)
-            return {"o": "h", "at": yat, "a": xa, "b": xb, "thick": mmlen(th), "type": typ}
-        xat, ya = mm(at, a, bonus)
-        _, yb = mm(at, b, bonus)
-        return {"o": "v", "at": xat, "a": ya, "b": yb, "thick": mmlen(th), "type": typ}
+            out = {"o": "h", "at": yat, "a": xa, "b": xb, "thick": mmlen(th), "type": typ}
+            cx, cy = (a + b) / 2, at
+        else:
+            xat, ya = mm(at, a, bonus)
+            _, yb = mm(at, b, bonus)
+            out = {"o": "v", "at": xat, "a": ya, "b": yb, "thick": mmlen(th), "type": typ}
+            cx, cy = at, (a + b) / 2
+        tag = TAG_OVERRIDES.get((orient, at, a))
+        if not tag and typ not in ("opening",):
+            want = ("FX", "SH", "PIC") if typ == "window" else ("DR", "PKT", "SGD")
+            best = None
+            for t, te, tn in tags:
+                if t.split()[1] not in want:
+                    continue
+                d = abs(te - cx) + abs(tn - cy)
+                if d < 330 and (best is None or d < best[0]):
+                    best = (d, t)
+            tag = best and best[1]
+        if tag:
+            kind = tag.split()[1]
+            w_mm, h_mm = tag_size(tag)
+            out["tag"] = tag
+            out["height"] = h_mm
+            if kind in ("FX", "SH", "PIC"):
+                out["type"] = "window"
+                out["style"] = "sh" if kind == "SH" else "fx"
+                out["sill"] = (BONUS_HEAD if bonus else MAIN_HEAD) - h_mm
+            elif kind == "SGD":
+                out["type"] = "slider"
+            elif kind == "PKT":
+                out["type"] = "pocket"
+            elif typ == "closet" and w_mm >= 1000:
+                pass                                   # bifold pair, keep
+            elif typ == "closet":
+                out["type"] = "door"
+        elif typ == "window":
+            untagged.append(out)
+        return out
 
     def furn_out(f, level, bonus=False):
         t, e, n, rot = f[:4]
@@ -415,6 +534,9 @@ def build(pdf):
         if len(f) > 4:
             o["w"], o["h"] = f[4], f[5]
         return o
+
+    untagged = []
+    tags = extract_tags(pdf)
 
     # stair (main units)
     riser = FLOOR_TO_FLOOR / RISERS
@@ -459,6 +581,16 @@ def build(pdf):
             o["note"] = r["note"]
         roof.append(o)
     roof_by_id = {r["id"]: r for r in ROOF}
+    beams = []
+    for bx in BEAMS:
+        x1, y1 = mm(bx[0], bx[1])
+        x2, y2 = mm(bx[2], bx[3])
+        top = round(shed_z(roof_by_id[bx[5]], (bx[0] + bx[2]) / 2, (bx[1] + bx[3]) / 2) - 60)
+        beams.append({"x1": x1, "y1": y1, "x2": x2, "y2": y2, "z0": top - bx[4], "z1": top})
+    for r, o in zip(ROOF, roof):
+        if "gableWindows" in r:
+            o["gableWindows"] = [dict(end=g["end"], tag=g["tag"], w=tag_size(g["tag"])[0],
+                                      h=tag_size(g["tag"])[1], head=g["head"]) for g in r["gableWindows"]]
     skirts = []
     for s in SKIRTS:
         x1, y1 = mm(s[0], s[1])
@@ -470,7 +602,7 @@ def build(pdf):
     plan = {
         "source": "Peterson 20251216.pdf — A1.0 (plans), A4.1 (sections), A3.1 (elevations), S2.0 (roof)",
         "dims": {
-            "doorHeight": 2032, "headerHeight": 2438, "windowSill": 914, "windowTop": 2438,
+            "doorHeight": MAIN_HEAD, "headerHeight": MAIN_HEAD, "windowSill": 914, "windowTop": MAIN_HEAD,
             "floorThick": FLOOR_TO_FLOOR - MAIN_CEIL,
         },
         "levels": [
@@ -480,16 +612,19 @@ def build(pdf):
              "openings": [op_out(o) for o in MAIN_OPENINGS],
              "stair": stair},
             {"id": "bonus", "name": "Bonus floor", "elev": FLOOR_TO_FLOOR, "height": BONUS_CEIL,
-             "windowSill": 762, "windowTop": 1880, "doorHeight": 2032,
+             "windowSill": 762, "windowTop": BONUS_HEAD, "doorHeight": 2032,
              "rooms": [o for rm in BONUS_ROOMS for o in room_out(rm, True)],
              "walls": [wall_out(r, True) for r in bonus_w],
              "openings": [op_out(o, True) for o in BONUS_OPENINGS]},
         ],
         "roof": roof,
         "skirts": skirts,
+        "beams": beams,
         "overhang": mmlen(O),
     }
     layout = [furn_out(f, "main") for f in MAIN_FURN] + [furn_out(f, "bonus", True) for f in BONUS_FURN]
+    for u in untagged:
+        print("  untagged window:", u)
     return plan, layout, (len(main_w), len(bonus_w))
 
 

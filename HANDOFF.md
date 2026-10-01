@@ -37,7 +37,9 @@ poppler's `pdftocairo`). It prints every room's size next to its label.
 - Walls are explicit: `[x1,y1,x2,y2]` rects straight from the PDF fills, or
   `{d:[x1,y1,x2,y2], t}` for the angled great-room corner. Openings are the
   gaps between walls: `{o, at, a, b, thick, type}`, with type `door`,
-  `door2`, `opening`, `closet`, `window`, `slider`, or `garage`.
+  `door2`, `opening`, `closet`, `pocket`, `window`, `slider`, or `garage`.
+  Tagged openings also carry `tag`, `height`, and (windows) `sill` and
+  `style` (`sh` or `fx`), all read from sheet A2.0.
 - Rooms are rects on wall faces. A room made of several rects repeats its id;
   extra rects carry `part: true`. Flags: `porch`, `patio`, `stair`, `void`
   (the upstairs stair well), `vaulted` (no ceiling in walk mode).
@@ -58,7 +60,7 @@ poppler's `pdftocairo`). It prints every room's size next to its label.
   `store.levelFurniture()`.
 - `PET.roomAt` returns the smallest containing rect, so closets win.
 - Bump `LAYOUT_VERSION` in `js/state.js` when the plan or layout changes
-  (it is 3), or browsers keep their stale `localStorage` layout.
+  (it is 4), or browsers keep their stale `localStorage` layout.
 - Undo/redo is snapshot-based; call `store.commit(label)` after mutating.
 
 ## 5. 3D and walking

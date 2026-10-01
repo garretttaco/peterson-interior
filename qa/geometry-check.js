@@ -44,6 +44,17 @@ for (const L of PET_PLAN.levels) {
   });
   check(tag + "no wall inside an opening", blockedOps.length === 0, blockedOps.map((o) => o.id).join(" | "));
 
+  /* every tagged opening's width matches its A2.0 tag (WWHH, feet+inches) */
+  const tagW = (t) => {
+    const w = t.split(" ")[0].slice(0, -2);
+    const inch = w.length === 3 ? (+w.slice(1) <= 11 ? +w[0] * 12 + +w.slice(1) : +w.slice(0, 2) * 12 + +w[2]) : +w[0] * 12 + +w.slice(1);
+    return inch * 25.4;
+  };
+  const tagged = built.openings.filter((op) => op.tag);
+  const badTag = tagged.filter((op) => Math.abs(tagW(op.tag) - op.w) > 80);
+  check(tag + "opening widths match A2.0 tags", badTag.length === 0,
+    badTag.map((o) => o.tag + " vs " + o.w).join(" | ") || tagged.length + " tagged openings within 80 mm");
+
   /* 3. no overlaps between different rooms unless one nests in the other */
   const rooms = L.rooms;
   const ov = [];

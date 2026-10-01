@@ -26,21 +26,23 @@
 
   function initMats() {
     MAT.wall = new THREE.MeshStandardMaterial({ color: 0xebe6dc, roughness: 0.94 });
-    MAT.wallExt = new THREE.MeshStandardMaterial({ color: 0xddd6c8, roughness: 0.96 });
+    MAT.wallExt = new THREE.MeshStandardMaterial({ color: 0xe6dfd1, roughness: 0.97 });   // stucco
     MAT.partition = new THREE.MeshStandardMaterial({ color: 0xf3f0ea, roughness: 0.95 });
     MAT.trim = new THREE.MeshStandardMaterial({ color: 0xe4dfd5, roughness: 0.8 });
     MAT.post = new THREE.MeshStandardMaterial({ color: 0x9b8468, roughness: 0.8 });
     MAT.glass = new THREE.MeshStandardMaterial({ color: 0xbfe0ef, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.38 });
-    MAT.frame = new THREE.MeshStandardMaterial({ color: 0x7d848c, roughness: 0.5 });
+    MAT.frame = new THREE.MeshStandardMaterial({ color: 0xf3f1ec, roughness: 0.5 });     // white window frames
+    MAT.fascia = new THREE.MeshStandardMaterial({ color: 0xebe7df, roughness: 0.7 });
+    MAT.rail = new THREE.MeshStandardMaterial({ color: 0x6f5a43, roughness: 0.6 });
     MAT.door = new THREE.MeshStandardMaterial({ color: 0xb08356, roughness: 0.6 });
     MAT.doorDark = new THREE.MeshStandardMaterial({ color: 0x7f6243, roughness: 0.6 });
     MAT.ground = new THREE.MeshStandardMaterial({ color: 0x8e9b7d, roughness: 1 });
     MAT.stair = new THREE.MeshStandardMaterial({ color: 0xc9a77c, roughness: 0.7 });
     MAT.slab = new THREE.MeshStandardMaterial({ color: 0xcfc8ba, roughness: 0.95 });
     MAT.ceiling = new THREE.MeshStandardMaterial({ color: 0xf1eee8, roughness: 0.98, side: THREE.DoubleSide });
-    MAT.roof = new THREE.MeshStandardMaterial({ color: 0x5c5853, roughness: 0.92, side: THREE.DoubleSide });
+    MAT.roof = new THREE.MeshStandardMaterial({ color: 0x4d4a47, roughness: 0.95, side: THREE.DoubleSide });   // architectural asphalt shingles
     MAT.roofMetal = new THREE.MeshStandardMaterial({ color: 0x737b84, roughness: 0.55, metalness: 0.25, side: THREE.DoubleSide });
-    MAT.gable = new THREE.MeshStandardMaterial({ color: 0xddd6c8, roughness: 0.96, side: THREE.DoubleSide });
+    MAT.gable = new THREE.MeshStandardMaterial({ color: 0xe6dfd1, roughness: 0.97, side: THREE.DoubleSide });
   }
 
   function box(w, h, d, mat) {
@@ -114,9 +116,44 @@
         return;
       }
       var r = w.rect;
+      if (w.kind === "post") z1 = postTop(r);
       prism(g, r.x1, r.y1, r.x2, r.y2, z0, z1, mat);
       addCollider(r.x1, r.y1, r.x2, r.y2, z0, z1);
     });
+  }
+
+  /* porch posts stop under the beam they carry */
+  function postTop(r) {
+    var beams = PET.store.data.beams || [];
+    for (var i = 0; i < beams.length; i++) {
+      var b = beams[i];
+      if (r.x1 < b.x2 + 40 && r.x2 > b.x1 - 40 && r.y1 < b.y2 + 40 && r.y2 > b.y1 - 40) return b.z0;
+    }
+    return 2945;
+  }
+
+  /* window frame + muntins in the plane of the glass.
+     r: opening rect, z0..z1: glass, style 'sh' (single-hung) or 'fx' (fixed) */
+  function windowTrim(g, op, r, z0, z1, style) {
+    var t = op.thick, fw = 50;
+    var along = op.o === "h", cx = (r.x1 + r.x2) / 2, cy = (r.y1 + r.y2) / 2;
+    var a0 = along ? r.x1 : r.y1, a1 = along ? r.x2 : r.y2;
+    function bar(p0, p1, q0, q1, depth) {     /* p along the wall, q = height */
+      depth = depth || 60;
+      if (along) prism(g, p0, cy - depth / 2, p1, cy + depth / 2, q0, q1, MAT.frame, false);
+      else prism(g, cx - depth / 2, p0, cx + depth / 2, p1, q0, q1, MAT.frame, false);
+    }
+    bar(a0, a0 + fw, z0, z1, t + 30); bar(a1 - fw, a1, z0, z1, t + 30);     // jambs
+    bar(a0, a1, z1 - fw, z1, t + 30); bar(a0, a1, z0, z0 + fw, t + 50);     // head, sill
+    var w = a1 - a0, h = z1 - z0, m = (a0 + a1) / 2;
+    if (style === "sh") {
+      bar(a0, a1, (z0 + z1) / 2 - 30, (z0 + z1) / 2 + 30, 70);              // meeting rail
+      if (w >= 600) bar(m - 14, m + 14, z0, z1);
+    } else {
+      var cols = Math.max(1, Math.round(w / 700)), rows = Math.max(1, Math.round(h / 650));
+      for (var i = 1; i < cols; i++) { var u = a0 + w * i / cols; bar(u - 14, u + 14, z0, z1); }
+      for (var j = 1; j < rows; j++) { var v = z0 + h * j / rows; bar(a0, a1, v - 14, v + 14); }
+    }
   }
 
   function buildOpenings(g, L) {
@@ -142,14 +179,17 @@
         prism(g, pr.x1, pr.y1, pr.x2, pr.y2, z0, z1, MAT.glass, false);
       }
       if (op.type === "window") {
-        prism(g, r.x1, r.y1, r.x2, r.y2, elev, sill, mat);
-        prism(g, r.x1, r.y1, r.x2, r.y2, wtop, top, mat);
-        pane(sill, wtop, 0);
-        prism(g, r.x1 - (op.o === "v" ? 12 : 0), r.y1 - (op.o === "h" ? 12 : 0),
-          r.x2 + (op.o === "v" ? 12 : 0), r.y2 + (op.o === "h" ? 12 : 0), sill, sill + 50, MAT.frame);
+        var ws = op.sill !== undefined ? elev + op.sill : sill;
+        var wt = op.height ? ws + op.height : wtop;
+        prism(g, r.x1, r.y1, r.x2, r.y2, elev, ws, mat);
+        prism(g, r.x1, r.y1, r.x2, r.y2, wt, top, mat);
+        pane(ws, wt, 0);
+        windowTrim(g, op, r, ws, wt, op.style || "fx");
         addCollider(r.x1, r.y1, r.x2, r.y2, elev, top);
       } else if (op.type === "slider") {
+        if (op.height) hh = Math.min(top, elev + op.height);
         prism(g, r.x1, r.y1, r.x2, r.y2, hh, top, mat);
+        windowTrim(g, op, r, elev, hh, "fx");
         /* fixed half is glass; the sliding half stands open */
         var half = op.o === "h"
           ? { x1: r.x1, y1: r.y1, x2: (r.x1 + r.x2) / 2, y2: r.y2 }
@@ -165,16 +205,28 @@
           ? { x1: r.x1, y1: cy - 30, x2: r.x2, y2: cy + 30 }
           : { x1: cx - 30, y1: r.y1, x2: cx + 30, y2: r.y2 };
         prism(g, p.x1, p.y1, p.x2, p.y2, elev, gh, MAT.doorDark);
+        /* raised panels: 4 rows x 4 columns, as drawn on the left elevation */
+        for (var gi = 1; gi < 4; gi++) {
+          var gz = elev + (gh - elev) * gi / 4;
+          if (op.o === "h") prism(g, r.x1, cy - 45, r.x2, cy + 45, gz - 18, gz + 18, MAT.trim, false);
+          else prism(g, cx - 45, r.y1, cx + 45, r.y2, gz - 18, gz + 18, MAT.trim, false);
+        }
+        for (var gj = 1; gj < 4; gj++) {
+          var ga = op.a + (op.b - op.a) * gj / 4;
+          if (op.o === "h") prism(g, ga - 18, cy - 45, ga + 18, cy + 45, elev, gh, MAT.trim, false);
+          else prism(g, cx - 45, ga - 18, cx + 45, ga + 18, elev, gh, MAT.trim, false);
+        }
         addCollider(r.x1, r.y1, r.x2, r.y2, elev, top);
       } else {
         /* doors, double doors, closets, cased openings: header only */
+        if (op.height) dh = elev + op.height;
         var head = op.type === "opening" ? Math.max(dh, hh) : dh;
         if (head > top) head = top;
         prism(g, r.x1, r.y1, r.x2, r.y2, head, top, mat);
         if (op.type === "door") doorLeaf(g, op, elev, dh, op.a + 20, op.w - 40, 1);
         if (op.type === "door2") {
-          doorLeaf(g, op, elev, dh, op.a + 20, op.w / 2 - 30, 1);
-          doorLeaf(g, op, elev, dh, op.b - 20, op.w / 2 - 30, -1);
+          doorLeaf(g, op, elev, dh, op.a + 20, op.w / 2 - 30, 1, MAT.glass);
+          doorLeaf(g, op, elev, dh, op.b - 20, op.w / 2 - 30, -1, MAT.glass);
         }
         if (op.type === "closet") {
           var cp = op.o === "h"
@@ -188,10 +240,10 @@
   }
 
   /* open door leaf, hinged at `at` along the opening, swung 62° */
-  function doorLeaf(g, op, elev, dh, at, leafW, dir) {
+  function doorLeaf(g, op, elev, dh, at, leafW, dir, mat) {
     if (leafW < 100) return;
     var h = dh - elev - 30;
-    var leaf = box(leafW, h, 40, MAT.door);
+    var leaf = box(leafW, h, 40, mat || MAT.door);
     leaf.geometry.translate(dir * leafW / 2, 0, 0);
     var swing = 62 * Math.PI / 180;
     if (op.o === "h") {
@@ -216,6 +268,17 @@
       addCollider(t.x1, t.y1, t.x2, t.y2, z0, t.z);
       surfaces.push({ x1: t.x1, y1: t.y1, x2: t.x2, y2: t.y2, h: t.z });
     });
+    /* handrails on the wall side of each run, 900 mm above the nosings */
+    var north = st.treads.filter(function (t) { return !t.landing && t.y1 > st.rail.y1; });
+    var south = st.treads.filter(function (t) { return !t.landing && t.y2 <= st.rail.y2; });
+    if (north.length) {
+      var n0 = north[0], n1 = north[north.length - 1];
+      band(g, [n0.x2, n0.y2 - 70, n0.z + 900 - st.riser], [n1.x1, n1.y2 - 70, n1.z + 900], 50, 50, MAT.rail, true);
+    }
+    if (south.length) {
+      var s0 = south[0], s1 = south[south.length - 1];
+      band(g, [s0.x1, s0.y1 + 70, s0.z + 900 - st.riser], [s1.x2, s1.y1 + 70, s1.z + 900], 50, 50, MAT.rail, true);
+    }
     /* centre wall between the runs, carried up as the guard at the upper floor */
     var rl = st.rail, railTop = PET.store.levelById("bonus").def.elev + 950;
     prism(g, rl.x1, rl.y1 - 30, rl.x2, rl.y2 + 30, 0, railTop, MAT.partition);
@@ -228,7 +291,7 @@
       var z = levelElev(L) + L.def.height;
       L.def.rooms.forEach(function (r) {
         if (r.patio || r.porch || r.vaulted) return;
-        if (r.void && levelElev(L) === 0) return;
+        if (r.stair && levelElev(L) === 0) return;        // open stairwell up to the bonus floor
         prism(g, r.x1 - 60, r.y1 - 60, r.x2 + 60, r.y2 + 60, z, z + 20, MAT.ceiling, false);
       });
     });
@@ -251,6 +314,20 @@
 
   function quad(a, b, c, d) { return [[a, b, c], [a, c, d]]; }
 
+  /* a straight member from plan point A to B ([x, y, z]); hangs below the
+     line unless `centred` (fascia boards hang, handrails sit centred) */
+  function band(g, A, B, h, t, mat, centred) {
+    var a = new THREE.Vector3(A[0], A[2], -A[1]), b = new THREE.Vector3(B[0], B[2], -B[1]);
+    var d = new THREE.Vector3().subVectors(b, a), len = d.length();
+    if (len < 1) return;
+    var m = box(len, h, t, mat);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize());
+    m.position.copy(a).add(b).multiplyScalar(0.5);
+    if (!centred) m.position.y -= h / 2;
+    m.castShadow = true;
+    g.add(m);
+  }
+
   function buildRoof(g) {
     var data = PET.store.data, ov = data.overhang || 457;
     var plate = PET.store.levelById("main").def.height;
@@ -264,6 +341,7 @@
         var c = [[r.x1, r.y1], [r.x2, r.y1], [r.x2, r.y2], [r.x1, r.y2]].map(function (p) { return [p[0], p[1], zAt(p[0], p[1])]; });
         tris = tris.concat(quad(c[0], c[1], c[2], c[3]));
         triMesh(g, tris, MAT.roofMetal);
+        for (var e = 0; e < 4; e++) band(g, c[e], c[(e + 1) % 4], 150, 25, MAT.fascia);
         return;
       }
       /* gable/hip in a local frame: u along the ridge, v across it */
@@ -281,6 +359,15 @@
       if (r.ends[0] === "hip") tris.push([P(u1, v2, z2), P(u1, v1, z1), P(ua, vr, H)]);
       if (r.ends[1] === "hip") tris.push([P(u2, v1, z1), P(u2, v2, z2), P(ub, vr, H)]);
       triMesh(g, tris, MAT.roof);
+      /* fascia along both eaves and up each gable rake */
+      band(g, P(u1, v1, z1), P(u2, v1, z1), 230, 30, MAT.fascia);
+      band(g, P(u1, v2, z2), P(u2, v2, z2), 230, 30, MAT.fascia);
+      [0, 1].forEach(function (k) {
+        if (r.ends[k] !== "gable") return;
+        var ue = k === 0 ? u1 : u2;
+        band(g, P(ue, v1, z1), P(ue, vr, H), 230, 30, MAT.fascia);
+        band(g, P(ue, vr, H), P(ue, v2, z2), 230, 30, MAT.fascia);
+      });
       /* gable-end walls at the wall line (one overhang in from the roof edge) */
       var base = r.gableBase || plate;
       [0, 1].forEach(function (k) {
@@ -292,7 +379,18 @@
         for (var i = 1; i < pts.length - 1; i++) gables.push([pts[0], pts[i], pts[i + 1]]);
       });
       triMesh(g, gables, MAT.gable);
+      /* windows set in a gable end (A3.1), e.g. the 2640 FX high in the south-west gable */
+      (r.gableWindows || []).forEach(function (gw) {
+        var k = gw.end, u = (k === 0 ? u1 + ov : u2 - ov) + (k === 0 ? -25 : 25);
+        var z0 = gw.head - gw.h, va = vr - gw.w / 2, vb = vr + gw.w / 2;
+        var pa = P(u, va, 0), pb = P(u, vb, 0);
+        var gr = { x1: Math.min(pa[0], pb[0]) - (X ? 15 : 0), x2: Math.max(pa[0], pb[0]) + (X ? 15 : 0),
+                   y1: Math.min(pa[1], pb[1]) - (X ? 0 : 15), y2: Math.max(pa[1], pb[1]) + (X ? 0 : 15) };
+        prism(g, gr.x1, gr.y1, gr.x2, gr.y2, z0, gw.head, MAT.glass, false);
+        windowTrim(g, { o: X ? "v" : "h", thick: 40 }, gr, z0, gw.head, "fx");
+      });
     });
+
     (data.skirts || []).forEach(function (s) {
       prism(g, s.x1, s.y1, s.x2, s.y2, s.z0, s.z1, MAT.wallExt);
     });
@@ -431,6 +529,9 @@
       root.add(g);
     });
     buildStair(levelGroups.main);
+    (store.data.beams || []).forEach(function (b) {          // porch beams on the posts
+      prism(levelGroups.main, b.x1, b.y1, b.x2, b.y2, b.z0, b.z1, MAT.post);
+    });
     buildFurniture(levelGroups);
     parts.upper = levelGroups.bonus;
     parts.ceilings = new THREE.Group(); buildCeilings(parts.ceilings); root.add(parts.ceilings);
